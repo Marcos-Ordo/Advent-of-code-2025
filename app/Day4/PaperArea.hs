@@ -1,4 +1,4 @@
-module Day4.PaperArea where
+module Day4.PaperArea (PaperArea, Dir(..), areaInicial, puedeMover, mover, hayPaperRoll, sacar) where
 
 {- Inv. Rep.:
  - * dada una Grid 'g' con listas de listas de Celdas 'fs', todas las 'fs' de 'g' deben tener la misma longitud.
@@ -7,11 +7,18 @@ module Day4.PaperArea where
  - * dada una Grid 'g' con un par de Enteros 'p', ambos números deben ser mayores o iguales a 0.
  -}
 
+-- TAD PaperArea:
+-- * areaInicial :: [String] -> PaperArea -- PRECOND: Cada caracter debe ser '@' o '.'
+-- * mover :: Dir -> PaperArea -> PaperArea -- PRECOND: La dirección a mover debe ser pósible
+-- * puedeMover :: Dir -> PaperArea -> Bool
+-- * hayPaperRoll :: PaperArea -> Bool
+-- * sacar :: PaperArea -> PaperArea
+
 data PaperArea = Grid [[Celda]] (Int, Int)
                 deriving Show
                 --    Filas      Punto
                 --     Columnas   Y    x
-data Celda = Papel Bool | Nada Bool
+data Celda = Papel | Nada
             deriving Show
 
 data Dir = Norte | Este | Sur | Oeste
@@ -25,9 +32,9 @@ areaInicial ss = Grid (f ss) (0,0)
         f = map g
         g :: String -> [Celda]
         g = foldr (\c cs -> if c == '@'
-                            then Papel False : cs
+                            then Papel : cs
                             else if c == '.'
-                                 then Nada False : cs
+                                 then Nada : cs
                                  else error "areaInicial: Los caractéres admitidos son @ y .") []
 
 mover :: Dir -> PaperArea -> PaperArea
@@ -59,31 +66,22 @@ hayPaperRoll :: PaperArea -> Bool
 hayPaperRoll (Grid fs p) = let (y,x) = p in esPapel ((fs !! y) !! x)
     where
         esPapel :: Celda -> Bool
-        esPapel (Papel _) = True
-        esPapel _         = False
+        esPapel Papel = True
+        esPapel _     = False
 
-sacarMarcados :: PaperArea -> PaperArea
-sacarMarcados (Grid fs p) = Grid (f fs) p
+sacar :: PaperArea -> PaperArea
+sacar (Grid fs (y,x)) = Grid (modificarFila fs y (modificarCelda x sacar')) (y,x)
     where
-        f :: [[Celda]] -> [[Celda]]
-        f = map g
-        g :: [Celda] -> [Celda]
-        g = foldr (\c cs -> if estáMarcado c then Nada False : cs else c : cs) []
-
-marcar :: PaperArea -> PaperArea
-marcar (Grid fs p) = let (y,x) = p in Grid (replaceNth y (replaceNth x (marcar' ((fs !! y) !! x)) (fs !! y)) fs) p
-    where
-        marcar' :: Celda -> Celda
-        marcar' (Papel _) = Papel True
-        marcar' (Nada  _) = Nada True
+        sacar' Papel = Nada
+        sacar' _     = Nada 
 
 -- ## --------------------------- aux ----------------------------- ## --
-replaceNth :: Int -> a -> [a] -> [a]
-replaceNth n x xs
-    | n < 0     = xs
-    | otherwise = take n xs ++ [x] ++ drop (n + 1) xs
+modificarCelda :: Int -> (a -> a) -> [a] -> [a]
+modificarCelda _ _ []     = []
+modificarCelda 0 f (c:cs) = f c : cs
+modificarCelda n f (c:cs) = c : modificarCelda (n-1) f cs
 
-
-estáMarcado :: Celda -> Bool
-estáMarcado (Papel b) = b
-estáMarcado (Nada  b) = b
+modificarFila :: [[a]] -> Int -> ([a] -> [a]) -> [[a]]
+modificarFila []     _ _       = []
+modificarFila (f:fs) 0 g       = g f : fs
+modificarFila (f:fs) n g       = f : modificarFila fs (n-1) g

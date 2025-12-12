@@ -21,5 +21,6 @@ answerDay3 = do ss <- readFile "./app/Day3/input.txt"
 
 answerDay4 :: IO ()
 answerDay4 = do ss <- readFile "./app/Day4/input.txt"
-                print (contarPaperRollDisponibles (readPaperArea ss))
-                print (contarPaperRollsBorrados (readPaperArea ss)) -- Tiene que dar 8765!
+                let pa = readPaperArea ss
+                 in do print (contarPaperRollDisponibles pa)
+                       print (contarPaperRollsBorrados pa)
