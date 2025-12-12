@@ -22,6 +22,8 @@ executable Advent-of-code
                       Day1.Dial
                       Day2.IdRanges
                       Day3.BatteryBank
+                      Day4.PaperRolls
+                      Day4.PaperArea
     -- other-extensions: 
     build-depends:    base ^>=4.18.3.0
     hs-source-dirs:   app

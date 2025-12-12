@@ -3,6 +3,7 @@ module Answers where
 import Day1.Dial
 import Day2.IdRanges
 import Day3.BatteryBank
+import Day4.PaperRolls
 
 answerDay1 :: IO ()
 answerDay1 = do ss <- readFile "./app/Day1/input.txt"
@@ -17,3 +18,8 @@ answerDay3 :: IO ()
 answerDay3 = do ss <- readFile "./app/Day3/input.txt"
                 print (totalOutput 2 (readBank ss))
                 print (totalOutput 12 (readBank ss))
+
+answerDay4 :: IO ()
+answerDay4 = do ss <- readFile "./app/Day4/input.txt"
+                print (contarPaperRollDisponibles (readPaperArea ss))
+                print (contarPaperRollsBorrados (readPaperArea ss)) -- Tiene que dar 8765!

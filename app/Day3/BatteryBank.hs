@@ -27,6 +27,10 @@ foldBattery z f (Jolt n b) = f n (foldBattery z f b)
 totalOutput :: Int -> BatteryBank -> Int
 totalOutput n bk = (sum . map formNumber) (maxOutageForBank n bk)
 
+readBank :: String -> BatteryBank
+readBank s = map read (lines s)
+
+-- ## -------------------------- Aux ----------------------------- ## --
 maxOutageForBank :: Int -> BatteryBank -> [[Int]]
 maxOutageForBank = map . maxOutageWithNBatteries
 
@@ -36,10 +40,6 @@ maxOutageWithNBatteries n b = f n b []
         f :: Int -> Battery -> [Int] -> [Int]
         f = flip (foldBattery (\_ rs -> rs) (\n' g nb rs -> fall nb n' (g nb rs)))
 
-readBank :: String -> BatteryBank
-readBank s = map read (lines s)
-
--- ## -------------------------- Aux ----------------------------- ## --
 fall :: Int -> Int -> [Int] -> [Int]
 fall nb n [] = [n | nb /= 0]
 fall nb n ts = if nb == length ts
