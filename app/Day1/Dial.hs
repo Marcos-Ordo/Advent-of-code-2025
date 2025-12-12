@@ -1,4 +1,4 @@
-module Day1.Dial (Dial, evalDial, evalSequence, method0x434C49434B, readDials, count0s) where 
+module Day1.Dial (Dial, evalSequence, method0x434C49434B, readDials, count0s) where 
 
 data Dial = L Int
           | R Int
@@ -9,11 +9,6 @@ instance Read Dial where
             ('L':rest) -> [(L n, rest') | (n, rest') <- reads rest]
             ('R':rest) -> [(R n, rest') | (n, rest') <- reads rest]
             _          -> []
-
--- Me dan una posición inicial y un Dial y devuelvo la posición resultante
-evalDial :: Int -> Dial -> Int
-evalDial n (L n') = evalDialL n n'
-evalDial n (R n') = evalDialR n n'
 
 -- Me dan una posición inicial, una lista de Diales y devuelvo una lista con las posiciones intermedias
 evalSequence :: Int -> [Dial] -> [Int]
@@ -33,7 +28,12 @@ readDials xs = map read (lines xs)
 count0s :: [Int] -> Int
 count0s = foldr (\n m -> fromEnum (n == 0) + m) 0
 
--- aux
+-- ## ------------------------ Aux ---------------------------------- ## --
+-- Me dan una posición inicial y un Dial y devuelvo la posición resultante
+evalDial :: Int -> Dial -> Int
+evalDial n (L n') = evalDialL n n'
+evalDial n (R n') = evalDialR n n'
+
 evalDialL :: Int -> Int -> Int
 evalDialL 0 m = case m of
                 0 -> 0

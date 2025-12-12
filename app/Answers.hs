@@ -12,3 +12,8 @@ answerDay1 = do ss <- readFile "./app/Day1/input.txt"
 answerDay2 :: IO ()
 answerDay2 = do ss <- readFile "./app/Day2/input.txt"
                 print (countElfDoingsInRanges (readRanges ss))
+
+answerDay3 :: IO ()
+answerDay3 = do ss <- readFile "./app/Day3/input.txt"
+                --print (readBank ss)
+                print (totalOutput 12 (readBank ss))
