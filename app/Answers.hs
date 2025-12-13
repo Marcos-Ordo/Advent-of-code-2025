@@ -4,6 +4,8 @@ import Day1.Dial
 import Day2.IdRanges
 import Day3.BatteryBank
 import Day4.PaperRolls
+import Day5.Sets
+-- import Day6.TODO!
 
 answerDay1 :: IO ()
 answerDay1 = do ss <- readFile "./app/Day1/input.txt"
@@ -12,7 +14,7 @@ answerDay1 = do ss <- readFile "./app/Day1/input.txt"
 
 answerDay2 :: IO ()
 answerDay2 = do ss <- readFile "./app/Day2/input.txt"
-                print (countElfDoingsInRanges (readRanges ss))
+                print (countElfDoingsInRanges (readIdRanges ss))
 
 answerDay3 :: IO ()
 answerDay3 = do ss <- readFile "./app/Day3/input.txt"
@@ -24,3 +26,14 @@ answerDay4 = do ss <- readFile "./app/Day4/input.txt"
                 let pa = readPaperArea ss
                  in do print (contarPaperRollDisponibles pa)
                        print (contarPaperRollsBorrados pa)
+
+answerDay5 :: IO ()
+answerDay5 = do ss <- readFile "./app/Day5/input.txt"
+                let (ss',ns) = break null (lines ss)
+                    ns'     = map read (tail ns) :: [Int]
+                    s       = getSetFromRanges (readRanges ss')
+                    i       = getIntervalFromRanges (readRanges ss')
+                 in do print (evalAll ns' s)
+                       print (countFreshIngredients i)
+
+-- answerDay6 :: TODO!

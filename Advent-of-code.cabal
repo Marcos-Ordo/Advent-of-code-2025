@@ -24,6 +24,7 @@ executable Advent-of-code
                       Day3.BatteryBank
                       Day4.PaperRolls
                       Day4.PaperArea
+                      Day5.Sets
     -- other-extensions: 
     build-depends:    base ^>=4.18.3.0
     hs-source-dirs:   app

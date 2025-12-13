@@ -1,4 +1,4 @@
-module Day2.IdRanges (IdRange, countElfDoingsInRanges, readRanges) where
+module Day2.IdRanges (countElfDoingsInRanges, readIdRanges) where
 import Data.Char (isDigit)
 
 data IdRange = IdRange Int Int
@@ -15,8 +15,8 @@ instance Read IdRange where
 countElfDoingsInRanges :: [IdRange] -> Int
 countElfDoingsInRanges = foldr (\i nr -> countElfDoingsInRange i + nr) 0
 
-readRanges :: String -> [IdRange]
-readRanges s = map read (commas s)
+readIdRanges :: String -> [IdRange]
+readIdRanges s = map read (commas s)
 
 -- ## --------------------------- aux ------------------------------ ## --
 evalIdRange :: IdRange -> [Int]

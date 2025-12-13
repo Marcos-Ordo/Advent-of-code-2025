@@ -1,4 +1,4 @@
-module Day1.Dial (Dial, evalSequence, method0x434C49434B, readDials, count0s) where 
+module Day1.Dial (evalSequence, method0x434C49434B, readDials, count0s) where 
 
 data Dial = L Int
           | R Int
