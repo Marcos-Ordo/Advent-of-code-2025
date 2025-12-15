@@ -5,7 +5,7 @@ import Day2.IdRanges
 import Day3.BatteryBank
 import Day4.PaperRolls
 import Day5.Sets
--- import Day6.TODO!
+import Day6.ExpA
 
 answerDay1 :: IO ()
 answerDay1 = do ss <- readFile "./app/Day1/input.txt"
@@ -36,4 +36,8 @@ answerDay5 = do ss <- readFile "./app/Day5/input.txt"
                  in do print (evalAll ns' s)
                        print (countFreshIngredients i)
 
--- answerDay6 :: TODO!
+answerDay6 :: IO ()
+answerDay6 = do ss <- readFile "./app/Day6/input.txt"
+                print (totalNumber (readExpA ss))
+                print (totalNumber (readExpA' ss))
+

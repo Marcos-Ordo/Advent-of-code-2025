@@ -3,4 +3,4 @@ module Main where
 import Answers
 
 main :: IO ()
-main = do answerDay5
+main = do answerDay6
