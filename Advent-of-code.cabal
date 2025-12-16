@@ -26,6 +26,7 @@ executable Advent-of-code
                       Day4.PaperArea
                       Day5.Sets
                       Day6.ExpA
+                      Day7.Manifold
     -- other-extensions: 
     build-depends:    base ^>=4.18.3.0
     hs-source-dirs:   app
