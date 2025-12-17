@@ -2,21 +2,50 @@ module Day7.Manifold where
 
 data Manifold = Splitter Manifold Manifold
               | Laser Manifold
-              | EManifold
+              | EmptyM
+              deriving (Show, Eq)
 
---readManifold :: [String] -> Manifold
+readManifold :: [String] -> Manifold
 readManifold ss = readManifold' (filter (not . isLineOfDots) ss)
 
-readManifold' []     = EManifold
-readManifold' (s:ss) = let (manI,manD) = appPar (map (splitAt (positionOf (=='S') s)) ss)
-                       in Splitter (readLeftManifold (tail manI)) (readRightManifold (tail manD))
+readManifold' :: [String] -> Manifold
+readManifold' []     = EmptyM
+readManifold' (s:ss) = evalLaser (positionOf (=='S') s) ss
 
-readLeftManifold :: [String] -> Manifold
-readLeftManifold [] = EManifold
-readLeftManifold ss = let (manI',manD') = appPar (map splitHead ss)
-                      in undefined
+evalLaser :: Int -> [String] -> Manifold
+evalLaser _ []     = EmptyM
+evalLaser n (s:ss) = searchM (s !! n) n ss
 
-readRightManifold = undefined
+evalSplitter :: Int -> Int -> [String] -> (Manifold, Manifold)
+evalSplitter _ _ []     = (EmptyM,EmptyM)
+evalSplitter n m (s:ss) = (searchM (s !! n) n ss, searchM (s !! m) m ss)
+
+searchM :: Char -> Int -> [String] -> Manifold
+searchM '^' n ss = let (m1, m2) = evalSplitter (n-1) (n+1) ss in Splitter m1 m2
+searchM '.' n ss = Laser (evalLaser n ss)
+searchM _   _ _  = error "searchM: caracter equivocado!"
+
+
+{- Simplifico bajo las siguientes reglas:
+    * Laser EmptyM = EmptyM
+    * Splitter (Splitter mii mid) (Splitter mdi mdd) #donde mid == mdi# = Splitter (Splitter mii mid) (Splitter EmptyM mdd)
+-}
+simplify :: Manifold -> Manifold
+simplify EmptyM           = EmptyM
+simplify (Laser m)        = simplifyLaser (simplify m)
+simplify (Splitter m1 m2) = simplifySplitter (simplify m1) (simplify m2)
+
+simplifySplitter :: Manifold -> Manifold -> Manifold
+simplifySplitter m1@(Splitter _ mid) m2 = case m2 of
+                                          Splitter mdi mdd -> if mid == mdi
+                                                              then Splitter m1 (Splitter EmptyM mdd)
+                                                              else Splitter m1 m2
+                                          _                -> Splitter m1 m2
+simplifySplitter m1                  m2 = Splitter m1 m2
+
+simplifyLaser :: Manifold -> Manifold
+simplifyLaser EmptyM = EmptyM
+simplifyLaser m      = Laser m
 
 -- Cumple la siguiente propiedad:
 -- positionOf (const False) xs = length xs
@@ -70,17 +99,6 @@ readRightManifold = undefined
 positionOf :: (a -> Bool) -> [a] -> Int
 positionOf _ []     = 0
 positionOf p (x:xs) = if p x then 0 else 1 + positionOf p xs
-
-appPar :: [(a,b)] -> ([a],[b])
-appPar []     = ([],[])
-appPar (p:ps) = let (x, y)  = p
-                    (xs,ys) = appPar ps
-                in  (x:xs,y:ys)
-
-splitHead :: [a] -> (a,[a])
--- PRECOND: La lista debe tener al menos un elemento
-splitHead []     = error "splitHead: La lista debe tener al menos un elemento"
-splitHead (x:xs) = (x,xs) 
 
 isLineOfDots :: String -> Bool
 isLineOfDots = all (=='.')
