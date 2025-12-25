@@ -6,6 +6,7 @@ import Day3.BatteryBank
 import Day4.PaperRolls
 import Day5.Sets
 import Day6.ExpA
+import Day7.Manifold
 
 answerDay1 :: IO ()
 answerDay1 = do ss <- readFile "./app/Day1/input.txt"
@@ -41,3 +42,7 @@ answerDay6 = do ss <- readFile "./app/Day6/input.txt"
                 print (totalNumber (readExpA ss))
                 print (totalNumber (readExpA' ss))
 
+answerDay7 :: IO ()
+answerDay7 = do s <- readFile "./app/Day7/input.txt"
+                print (countSplits (parseGrid s))
+                print (countPaths  (parseGrid s))
