@@ -27,6 +27,7 @@ executable Advent-of-code
                       Day5.Sets
                       Day6.ExpA
                       Day7.Manifold
+                      Day8.Circuit
     -- other-extensions: 
     build-depends:    containers ^>=0.6.7, base ^>=4.18.3.0
     hs-source-dirs:   app
