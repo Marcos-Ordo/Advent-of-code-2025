@@ -7,6 +7,7 @@ import Day4.PaperRolls
 import Day5.Sets
 import Day6.ExpA
 import Day7.Manifold
+import Day8.Circuit
 
 answerDay1 :: IO ()
 answerDay1 = do ss <- readFile "./app/Day1/input.txt"
@@ -46,3 +47,7 @@ answerDay7 :: IO ()
 answerDay7 = do s <- readFile "./app/Day7/input.txt"
                 print (countSplits (parseGrid s))
                 print (countPaths  (parseGrid s))
+
+answerDay8 :: IO ()
+answerDay8 = do s <- readFile "./app/Day8/input.txt"
+                print $ countCircuits s
