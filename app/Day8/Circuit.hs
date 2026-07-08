@@ -1,4 +1,8 @@
-module Day8.Circuit where
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
+
+module Day8.Circuit (countCircuits, countLast) where
 
 type Node = (Int, Int, Int) -- (X, Y, Z)
 newtype Edge = E (Float, Node, Node) -- (Weight, NodeA, NodeB)
@@ -30,31 +34,6 @@ countLast s = case joinCircuitsUntil $ qsortMax $ edges $ parseNodes s of
               Left ((x,_,_),(x',_,_)) -> x * x'
               Right _                 -> error "No se hizo la cuenta correctamente"
 
--- TESTS
-
-test :: IO ()
-test = do s <- readFile "./app/Day8/input.txt"
-          print $ makeEdges s
-
-test2 :: IO ()
-test2 = do s <- readFile "./app/Day8/input.txt"
-           print $ joinCircuits $ makeEdges s
-
-test3 :: IO ()
-test3 = do s <- readFile "./app/Day8/input.txt"
-           print $ getTotal $ joinCircuits $ makeEdges s
-
-test4 :: IO ()
-test4 = do s <- readFile "./app/Day8/input.txt"
-           print $ joinCircuits $ qsortMin $ edges $ parseNodes s
-
-test5 :: IO ()
-test5 = do s <- readFile "./app/Day8/input.txt"
-           print $ joinCircuitsUntil $ qsortMax $ edges $ parseNodes s
-
-countCircuitsTest :: [Edge] -> [Int]
-countCircuitsTest = map size . joinCircuits
-
 -- AUXS
 
 getTotal :: [Circuit] -> Int
@@ -80,7 +59,7 @@ larger :: Ord a => a -> [a] -> [a]
 larger x = filter (>=x)
 
 recr :: (a -> [a] -> b -> b) -> b -> [a] -> b
-recr f z []     = z
+recr _ z []     = z
 recr f z (x:xs) = f x xs (recr f z xs)
 
 -- MAIN LOGIC
@@ -118,14 +97,14 @@ joinCircuits ((E (_,a,b)):es) = (a,b) `add` joinCircuits es
         merge :: Circuit -> Circuit -> Circuit
         merge (C es n) (C es' n') = C (es++es') (n+n')
         f :: (Node,Node) -> Node -> Circuit -> [Circuit] -> [Circuit]
-        f p x c cs = case searchFor a cs of
+        f p _ c cs = case searchFor a cs of
                      Nothing       -> p `append` c : cs
                      Just (c',cs') -> merge c c' : cs'
         append :: (Node, Node) -> Circuit -> Circuit
         append e (C es n) = C (e:es) (n+1)
 
 searchFor :: Node -> [Circuit] -> Maybe (Circuit, [Circuit])
-searchFor n []     = Nothing
+searchFor _ []     = Nothing
 searchFor n (c:cs) = if n `appears` c
                      then Just (c,cs)
                      else case searchFor n cs of

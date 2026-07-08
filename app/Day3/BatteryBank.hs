@@ -1,4 +1,4 @@
-module Day3.BatteryBank (BatteryBank, Battery, totalOutput, readBank) where
+module Day3.BatteryBank (totalOutput, readBank) where
 import Data.Char (isDigit, digitToInt)
 
 type BatteryBank = [Battery]
