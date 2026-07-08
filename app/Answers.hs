@@ -51,3 +51,4 @@ answerDay7 = do s <- readFile "./app/Day7/input.txt"
 answerDay8 :: IO ()
 answerDay8 = do s <- readFile "./app/Day8/input.txt"
                 print $ countCircuits s
+                print $ countLast s
