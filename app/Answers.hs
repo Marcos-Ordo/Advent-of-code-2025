@@ -8,6 +8,7 @@ import Day5.Sets
 import Day6.ExpA
 import Day7.Manifold
 import Day8.Circuit
+import Day9.Theather
 
 answerDay1 :: IO ()
 answerDay1 = do ss <- readFile "./app/Day1/input.txt"
@@ -52,3 +53,8 @@ answerDay8 :: IO ()
 answerDay8 = do s <- readFile "./app/Day8/input.txt"
                 print $ countCircuits s
                 print $ countLast s
+
+answerDay9 :: IO ()
+answerDay9 = do s <- readFile "./app/Day9/input.txt"
+                print $ getBiggestArea s
+                print $ getBiggestInsider s
