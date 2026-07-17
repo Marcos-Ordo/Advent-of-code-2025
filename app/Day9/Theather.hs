@@ -1,6 +1,8 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# HLINT ignore "Use list comprehension" #-}
+{-# LANGUAGE TupleSections #-}
 
 module Day9.Theather where
 
@@ -91,25 +93,28 @@ biggestArea ps = foldr (\p n -> maxArea p ps `max` n) 0 ps
 -}
 
 biggestInsider2 :: (Pos -> Bool) -> [Pos] -> Int
-biggestInsider2 f ps = foldr (\p n -> maxArea p f ps `max` n) 1 ps
-    where
-        maxArea :: Pos -> (Pos -> Bool) -> [Pos] -> Int
-        maxArea p f = foldr (\p' n -> if checkPerimeter f p p' then rectangleArea p p' `max` n else n) 1
-        rectangleArea :: Pos -> Pos -> Int
-        rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' + 1)
+biggestInsider2 f ps = maximum [ rectangleArea p q
+                               | (p,q) <- pairs ps
+                               , checkPerimeter f p q]
+
+rectangleArea :: Pos -> Pos -> Int
+rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' + 1)
+
+pairs :: [a] -> [(a,a)]
+pairs []     = []
+pairs (x:xs) = map (x,) xs ++ pairs xs
 
 checkPerimeter :: (Pos -> Bool) -> Pos -> Pos -> Bool
-checkPerimeter f (x,y) (x',y') = all f (g (min x x') (max x x') (min y y') (max y y'))
+checkPerimeter f (x,y) (x',y') = let minX = min x x'
+                                     maxX = max x x'
+                                     minY = min y y'
+                                     maxY = max y y'
+                                  in horizontal minX maxX minY && horizontal minX maxX maxY && vertical minY maxY minX && vertical minY maxY maxX
     where
-        g :: Int -> Int -> Int -> Int -> [Pos]
-        g minX maxX minY maxY = weirdZip minY [minX..maxX] maxY [minX..maxX] minX [minY..maxY] maxX [minY..maxY]
-        
-weirdZip :: Int -> [Int] -> Int -> [Int] -> Int -> [Int] -> Int -> [Int] -> [Pos]
-weirdZip minY []       maxY []       minX []       maxX []       = []
-weirdZip minY []       maxY []       minX []       maxX (mY:mYs) = (maxX,mY) : weirdZip minY []  maxY []  minX []  maxX mYs
-weirdZip minY []       maxY []       minX (mY:mYs) maxX mys      = (minX,mY) : weirdZip minY []  maxY []  minX mYs maxX mys
-weirdZip minY []       maxY (mX:mXs) minX mYs      maxX mys      = (mX,maxY) : weirdZip minY []  maxY mXs minX mYs maxX mys
-weirdZip minY (mX:mXs) maxY mxs      minX mYs      maxX mys      = (mX,minY) : weirdZip minY mXs maxY mxs minX mYs maxX mys
+        horizontal :: Int -> Int -> Int -> Bool
+        horizontal a b yy = all (\xx -> f (xx,yy)) [a..b]
+        vertical :: Int -> Int -> Int -> Bool
+        vertical   a b xx = all (\yy -> f (xx,yy)) [a..b]
 
 pertenece :: [Pos] -> Pos -> Int
 pertenece ps p = f p (head ps) ps 0
@@ -129,7 +134,7 @@ pertenece ps p = f p (head ps) ps 0
         isVertical :: Pos -> Pos -> Bool
         isVertical (x,_) (x',_) = x == x'
         isBetween :: Pos -> Pos -> Pos -> Bool
-        isBetween (xu,yu) (x,y) (x',y') = xu == x && yu > y && yu < y'
+        isBetween (xu,yu) (x,y) (_,y') = xu == x && yu > y && yu < y'
         isAPoint :: Pos -> Pos -> Pos -> Bool
         isAPoint pu p p' = pu == p || pu == p'
 
