@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 {-# HLINT ignore "Use list comprehension" #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -30,6 +31,9 @@ example2 = [(1,1),(5,1),(5,3),(8,3),(3,6),(8,6),(1,8),(3,8)]
 
 example3 :: [Pos]
 example3 = [(7,1),(11,1),(2,3),(7,3),(2,5),(9,5),(9,7),(11,7)]
+
+example4 :: [Pos]
+example4 = [(0,0),(7,0),(7,5),(6,5),(6,7),(5,7),(5,1),(4,1),(4,2),(3,2),(3,4),(2,4),(2,6),(1,6),(1,3),(0,3)]
 
 -- MAIN LOGIC
 
@@ -93,9 +97,12 @@ biggestArea ps = foldr (\p n -> maxArea p ps `max` n) 0 ps
 -}
 
 biggestInsider2 :: (Pos -> Bool) -> [Pos] -> Int
-biggestInsider2 f ps = maximum [ rectangleArea p q
-                               | (p,q) <- pairs ps
-                               , checkPerimeter f p q]
+biggestInsider2 f = g f . orderPos . pairs
+    where
+        g :: (Pos -> Bool) -> [(Pos,Pos)] -> Int
+        g f []         = 0
+        g f ((p,q):ps) = if checkPerimeter f p q then rectangleArea p q else g f ps
+        -- foldr (\(p,q) n -> if checkPerimeter f p q then max (rectangleArea p q) n else n) 0
 
 rectangleArea :: Pos -> Pos -> Int
 rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' + 1)
@@ -103,6 +110,19 @@ rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' +
 pairs :: [a] -> [(a,a)]
 pairs []     = []
 pairs (x:xs) = map (x,) xs ++ pairs xs
+
+orderPos :: [(Pos,Pos)] -> [(Pos,Pos)]
+orderPos []     = []
+orderPos [p]    = [p]
+orderPos (p:ps) = (orderPos . larger (distanceBetween p)) ps ++ [p] ++ (orderPos . smaller (distanceBetween p)) ps
+    where
+        smaller :: Float -> [(Pos,Pos)] -> [(Pos,Pos)]
+        smaller n = filter (\pl -> distanceBetween pl <= n)
+        larger :: Float -> [(Pos,Pos)] -> [(Pos,Pos)]
+        larger  n = filter (\pl -> distanceBetween pl >= n)
+
+distanceBetween :: (Pos,Pos) -> Float
+distanceBetween ((x1,y1),(x2,y2)) = sqrt $ fromIntegral $ (x2 - x1)^2 + (y2 - y1)^2
 
 checkPerimeter :: (Pos -> Bool) -> Pos -> Pos -> Bool
 checkPerimeter f (x,y) (x',y') = let minX = min x x'
