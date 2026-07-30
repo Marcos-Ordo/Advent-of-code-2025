@@ -5,7 +5,7 @@
 {-# HLINT ignore "Use list comprehension" #-}
 {-# LANGUAGE TupleSections #-}
 
-module Day9.Theather where
+module Day9.Theather where 
 
 type Pos = (Int,Int) -- (Eje X, Eje Y)
 data Intervalo = I Int (Int -> Bool) -- (Eje Y / nivel) (Intervalo X)
@@ -13,10 +13,25 @@ data Intervalo = I Int (Int -> Bool) -- (Eje Y / nivel) (Intervalo X)
 getBiggestArea :: String -> Int
 getBiggestArea = biggestArea . parsePos
 
-getBiggestInsider :: String -> Int
-getBiggestInsider s = let ps = parsePos s
-                          f  = pertenece ps
-                       in biggestInsider2 (odd . f) ps
+getBiggestInsider :: String -> (Pos,Pos)
+getBiggestInsider s = let ps  = parsePos s
+                          f   = intervalosCruzados ps
+                          ps' = pairs ps
+                       in biggestInsider f ps'
+
+-- TESTS
+
+liveTest :: IO ()
+liveTest = do s <- readFile "./app/Day9/input.txt"
+              print $ biggestInsider (f s) (ps' s)
+    where
+        ps :: String -> [Pos]
+        ps s = parsePos s
+        f :: String -> Int -> Pos -> Int
+        f = intervalosCruzados . ps
+        ps' :: String -> [(Pos,Pos)]
+        ps' = pairs . ps
+
 
 -- EXAMPLES
 
@@ -33,7 +48,10 @@ example3 :: [Pos]
 example3 = [(7,1),(11,1),(2,3),(7,3),(2,5),(9,5),(9,7),(11,7)]
 
 example4 :: [Pos]
-example4 = [(0,0),(7,0),(7,5),(6,5),(6,7),(5,7),(5,1),(4,1),(4,2),(3,2),(3,4),(2,4),(2,6),(1,6),(1,3),(0,3)]
+example4 = [(0,0),(8,0),(8,5),(7,5),(7,7),(6,7),(6,1),(5,1),(5,2),(4,2),(4,4),(3,4),(3,6),(2,6),(2,3),(0,3)]
+
+example5 :: [Pos]
+example5 = [(0,0),(8,0),(8,5),(7,5),(7,7),(6,7),(6,1),(4,1),(4,4),(3,4),(3,6),(2,6),(2,3),(0,3)]
 
 -- MAIN LOGIC
 
@@ -52,8 +70,9 @@ biggestArea ps = foldr (\p n -> maxArea p ps `max` n) 0 ps
     where
         maxArea :: Pos -> [Pos] -> Int
         maxArea p = foldr (\p' n -> rectangleArea p p' `max` n) 1
-        rectangleArea :: Pos -> Pos -> Int
-        rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' + 1)
+
+rectangleArea :: Pos -> Pos -> Int
+rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' + 1)
 
 {-
  0123456789
@@ -96,70 +115,70 @@ biggestArea ps = foldr (\p n -> maxArea p ps `max` n) 0 ps
 8........... . .
 -}
 
-biggestInsider2 :: (Pos -> Bool) -> [Pos] -> Int
-biggestInsider2 f = g f . orderPos . pairs
-    where
-        g :: (Pos -> Bool) -> [(Pos,Pos)] -> Int
-        g f []         = 0
-        g f ((p,q):ps) = if checkPerimeter f p q then rectangleArea p q else g f ps
-        -- foldr (\(p,q) n -> if checkPerimeter f p q then max (rectangleArea p q) n else n) 0
-
-rectangleArea :: Pos -> Pos -> Int
-rectangleArea (x,y) (x',y') = (max x x' - min x x' + 1) * (max y y' - min y y' + 1)
-
-pairs :: [a] -> [(a,a)]
-pairs []     = []
-pairs (x:xs) = map (x,) xs ++ pairs xs
+biggestInsider :: (Int -> Pos -> Int) -> [(Pos,Pos)] -> (Pos,Pos)
+biggestInsider f = head . filter (uncurry (check f)) . orderPos
 
 orderPos :: [(Pos,Pos)] -> [(Pos,Pos)]
 orderPos []     = []
 orderPos [p]    = [p]
-orderPos (p:ps) = (orderPos . larger (distanceBetween p)) ps ++ [p] ++ (orderPos . smaller (distanceBetween p)) ps
+orderPos (p:ps) = (orderPos . larger (uncurry rectangleArea p)) ps ++ [p] ++ (orderPos . smaller (uncurry rectangleArea p)) ps
     where
-        smaller :: Float -> [(Pos,Pos)] -> [(Pos,Pos)]
-        smaller n = filter (\pl -> distanceBetween pl <= n)
-        larger :: Float -> [(Pos,Pos)] -> [(Pos,Pos)]
-        larger  n = filter (\pl -> distanceBetween pl >= n)
+        smaller :: Int -> [(Pos,Pos)] -> [(Pos,Pos)]
+        smaller n = filter (\pl -> uncurry rectangleArea pl <= n)
+        larger :: Int -> [(Pos,Pos)] -> [(Pos,Pos)]
+        larger  n = filter (\pl -> uncurry rectangleArea pl >= n)
 
-distanceBetween :: (Pos,Pos) -> Float
-distanceBetween ((x1,y1),(x2,y2)) = sqrt $ fromIntegral $ (x2 - x1)^2 + (y2 - y1)^2
-
-checkPerimeter :: (Pos -> Bool) -> Pos -> Pos -> Bool
-checkPerimeter f (x,y) (x',y') = let minX = min x x'
-                                     maxX = max x x'
-                                     minY = min y y'
-                                     maxY = max y y'
-                                  in horizontal minX maxX minY && horizontal minX maxX maxY && vertical minY maxY minX && vertical minY maxY maxX
+check :: (Int -> Pos -> Int) -> Pos -> Pos -> Bool
+check f (x,y) (x',y') = let minX = min x x'
+                            maxX = max x x'
+                            minY = min y y'
+                            maxY = max y y'
+                            n    = f maxX (minX,minY)
+                                  in all (\p -> f maxX p == n) (pointsToCheck minX (minY+1) maxY)
     where
-        horizontal :: Int -> Int -> Int -> Bool
-        horizontal a b yy = all (\xx -> f (xx,yy)) [a..b]
-        vertical :: Int -> Int -> Int -> Bool
-        vertical   a b xx = all (\yy -> f (xx,yy)) [a..b]
+        pointsToCheck :: Int -> Int -> Int -> [Pos]
+        pointsToCheck xx a b = map (xx,) [a..b]
 
-pertenece :: [Pos] -> Pos -> Int
-pertenece ps p = f p (head ps) ps 0
+pertenece :: [Pos] -> Pos -> Bool
+pertenece ps = odd . intervalosCruzados ps (-1)
+
+intervalosCruzados :: [Pos] -> Int -> Pos -> Int
+intervalosCruzados ps maxX p = f maxX p (head ps) ps 0
     where
-        f :: Pos -> Pos -> [Pos] -> Int -> Int
-        f _  _  []  n = n
-        f pu po [p] n
-            | isBetween pu p po = 1
-            | pu == p           = 1
-            | isVertical   p po = n + cruzarRayo pu (p,po)
-            | otherwise         = n
-        f pu po (p:p':ps) n
-            | isBetween pu p p' = 1
-            | isAPoint  pu p p' = 1
-            | isVertical   p p' = f pu po (p':ps) (n + cruzarRayo pu (p,p'))
-            | otherwise         = f pu po (p':ps) n
+        f :: Int -> Pos -> Pos -> [Pos] -> Int -> Int
+        f _    _  _  []  = id
+        f maxX pu po [p]
+            | isBetween pu p po 
+             && isBefore p maxX = const 1
+            | pu == p           
+             && isBefore p maxX = const 1
+            | isVertical p po 
+             && isBefore p maxX = (+ cruzarRayo pu (p,po))
+            | otherwise         = id
+        f maxX pu po (p:p':ps)
+            | isBetween pu p p'   
+             && isBefore p maxX   = const 1
+            | pu == p || pu == p' 
+             && isBefore p maxX   = const 1
+            | isVertical   p p'
+             && isBefore p maxX   = \n -> f maxX pu po (p':ps) (n + cruzarRayo pu (p,p')) 
+            | otherwise           = f maxX pu po (p':ps)
         isVertical :: Pos -> Pos -> Bool
         isVertical (x,_) (x',_) = x == x'
         isBetween :: Pos -> Pos -> Pos -> Bool
-        isBetween (xu,yu) (x,y) (_,y') = xu == x && yu > y && yu < y'
-        isAPoint :: Pos -> Pos -> Pos -> Bool
-        isAPoint pu p p' = pu == p || pu == p'
+        isBetween (xu,yu) (x,y) (_,y') = xu == x && yu > min y y' && yu < max y y'
+        isBefore :: Pos -> Int -> Bool
+        isBefore _     (-1) = True
+        isBefore (x,_) maxX = x < maxX
 
 cruzarRayo :: Pos -> (Pos,Pos) -> Int
 cruzarRayo (x,y) (p,p') = fromEnum $ fst p > x && y > apply min snd p p' && y < apply max snd p p'
+
+-- GENERICS
+
+pairs :: [a] -> [(a,a)]
+pairs []     = []
+pairs (x:xs) = map (x,) xs ++ pairs xs
 
 apply :: (b -> b -> c) -> (a -> b) -> a -> a -> c
 apply f g x y = f (g x) (g y)
